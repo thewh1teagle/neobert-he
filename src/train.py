@@ -56,9 +56,10 @@ def main():
     model = build_model(flash_attention=args.flash_attention)
 
     if args.init_from_checkpoint:
-        from safetensors.torch import load_file
-        state = load_file(str(Path(args.init_from_checkpoint) / "model.safetensors"), device="cpu")
-        model.load_state_dict(state, strict=False)
+        from transformers import ModernBertForMaskedLM
+        pretrained = ModernBertForMaskedLM.from_pretrained(args.init_from_checkpoint)
+        model.load_state_dict(pretrained.state_dict(), strict=False)
+        del pretrained
         if accelerator.is_main_process:
             print(f"Loaded weights from {args.init_from_checkpoint}")
 
@@ -117,13 +118,13 @@ def main():
                         metrics = evaluate(accelerator.unwrap_model(model), eval_loader, accelerator)
                         writer.add_scalar("eval/loss", metrics["eval_loss"], opt_step)
                         writer.add_scalar("eval/acc", metrics["eval_acc"], opt_step)
-                        print(f"[step {opt_step}] eval_loss={metrics['eval_loss']:.4f} eval_acc={metrics['eval_acc']:.4f}")
-                        save_checkpoint(accelerator.unwrap_model(model), output_dir, opt_step, metrics["eval_loss"], args.save_total_limit)
+                        print(f"[step {opt_step}] eval_loss={metrics['eval_loss']:.4f} eval_acc={metrics['eval_acc']:.2%}")
+                        save_checkpoint(accelerator.unwrap_model(model), tokenizer, output_dir, opt_step, metrics["eval_loss"], args.save_total_limit)
 
     if accelerator.is_main_process:
         metrics = evaluate(accelerator.unwrap_model(model), eval_loader, accelerator)
-        print(f"Final eval_loss={metrics['eval_loss']:.4f} eval_acc={metrics['eval_acc']:.4f}")
-        save_checkpoint(accelerator.unwrap_model(model), output_dir, opt_step, metrics["eval_loss"], args.save_total_limit)
+        print(f"Final eval_loss={metrics['eval_loss']:.4f} eval_acc={metrics['eval_acc']:.2%}")
+        save_checkpoint(accelerator.unwrap_model(model), tokenizer, output_dir, opt_step, metrics["eval_loss"], args.save_total_limit)
         writer.close()
 
 

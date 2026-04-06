@@ -12,18 +12,12 @@ import argparse
 from pathlib import Path
 
 import torch
-from safetensors.torch import load_file
-from transformers import PreTrainedTokenizerFast
-
-from model import build_model
-from tokenization import build_tokenizer
+from transformers import AutoTokenizer
 
 
 def load_model(checkpoint: str) -> "ModernBertForMaskedLM":
-    from transformers import ModernBertForMaskedLM
-    model = build_model()
-    state = load_file(str(Path(checkpoint) / "model.safetensors"), device="cpu")
-    model.load_state_dict(state)
+    from transformers import AutoModelForMaskedLM
+    model = AutoModelForMaskedLM.from_pretrained(checkpoint)
     model.eval()
     return model
 
@@ -54,14 +48,7 @@ def main():
     parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu")
     args = parser.parse_args()
 
-    tokenizer = PreTrainedTokenizerFast(
-        tokenizer_object=build_tokenizer(),
-        unk_token="[UNK]",
-        sep_token="[SEP]",
-        pad_token="[PAD]",
-        cls_token="[CLS]",
-        mask_token="[MASK]",
-    )
+    tokenizer = AutoTokenizer.from_pretrained(args.checkpoint)
 
     device = torch.device(args.device)
     model = load_model(args.checkpoint).to(device)

@@ -1,107 +1,55 @@
 # Training
 
-## Commands
-
-### 1. Prepare dataset
-
-Split your corpus into train/val text files (one sentence per line), then tokenize and cache:
+## 1. Prepare data
 
 ```console
-uv run src/train.py \
-  --train-dataset data/train.txt \
-  --eval-dataset data/val.txt \
-  --output-dir outputs/neobert-he-mlm
+bash scripts/prepare_dataset.sh
+bash scripts/split_dataset.sh data/raw.txt
 ```
 
-The first run tokenizes and caches both files to Arrow (`.cache` directories next to each `.txt`). Subsequent runs reuse the cache.
+This downloads the Hebrew corpora, strips nikud, and splits into `data/train.txt` / `data/val.txt`.
 
-### 2. Train
+## 2. Train
 
 ```console
-uv run src/train.py \
-  --train-dataset data/train.txt \
-  --eval-dataset data/val.txt \
-  --output-dir outputs/my-run \
-  --epochs 3 \
-  --encoder-lr 2e-5 \
-  --train-batch-size 16 \
-  --gradient-accumulation-steps 4 \
-  --warmup-steps 200 \
-  --logging-steps 50 \
-  --save-steps 500
+bash scripts/train_scratch.sh
 ```
 
-### Multi-GPU
+Checkpoints are saved to `outputs/neobert-he/` in HuggingFace format, loadable with `AutoModelForMaskedLM.from_pretrained`.
+
+### Resume from checkpoint
 
 ```console
-accelerate launch src/train.py \
-  --train-dataset data/train.txt \
-  --eval-dataset data/val.txt \
-  --output-dir outputs/my-run
+bash scripts/train_scratch.sh --init-from-checkpoint outputs/neobert-he/checkpoint-2000
 ```
 
-### Fine-tuning from a checkpoint
-
-Use `--init-from-checkpoint` to load weights only (resets optimizer state and step counter):
+### Fine-tune from a checkpoint (reset optimizer)
 
 ```console
-uv run src/train.py \
-  --train-dataset data/train.txt \
-  --eval-dataset data/val.txt \
-  --output-dir outputs/my-run \
-  --init-from-checkpoint outputs/previous-run/checkpoint-1200 \
-  --init-weights-only \
-  --epochs 1
+bash scripts/train_scratch.sh --init-from-checkpoint outputs/neobert-he/checkpoint-2000 --init-weights-only
 ```
 
 ## Flash Attention
 
-Pass `--flash-attention` to use `flash_attention_2` instead of SDPA. Requires `flash-attn` installed:
+ModernBERT supports Flash Attention 2 for faster training and lower VRAM usage. Enable with `--flash-attention`:
 
 ```console
-pip install flash-attn --no-build-isolation
+bash scripts/train_scratch.sh --flash-attention
 ```
+
+Install a prebuilt wheel first:
+
+- **x86_64**: https://github.com/mjun0812/flash-attention-prebuild-wheels
+- **aarch64 (ARM)**: https://pypi.jetson-ai-lab.io/sbsa/cu130
+
+Validate:
 
 ```console
-uv run src/train.py \
-  --train-dataset data/train.txt \
-  --eval-dataset data/val.txt \
-  --output-dir outputs/my-run \
-  --flash-attention
+uv run python -c "import flash_attn; print(flash_attn.__version__)"
 ```
 
-## Key Arguments
+## Data notes
 
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--encoder-lr` | `2e-5` | Learning rate |
-| `--train-batch-size` | `16` | Batch size per device |
-| `--gradient-accumulation-steps` | `1` | Effective batch multiplier |
-| `--warmup-steps` | `200` | Linear warmup steps |
-| `--fp16` | auto (CUDA) | Mixed precision training |
-| `--flash-attention` | off | Enable flash attention + packing |
-| `--init-weights-only` | off | Load weights but reset step/scheduler |
-
-## Data Format
-
-Input: plain `.txt` file, one Hebrew sentence per line. Nikud (diacritics) are stripped automatically by the tokenizer normalizer — no preprocessing needed.
-
-## Data Pipeline
-
-```
-raw .txt (one sentence per line)
-  → data.py                tokenize + cache to Arrow (once)
-  → DataCollatorForMLM     15% random masking per batch
-  → train.py               training loop
-```
-
-## Using the Pretrained Encoder
-
-Load encoder weights into a downstream model:
-
-```console
-uv run src/train.py \
-  --init-from-checkpoint outputs/neobert-he/checkpoint-XXXX \
-  --init-weights-only \
-  ...
-```
+- Input: one Hebrew sentence per line
+- Nikud (diacritics) are stripped automatically — no preprocessing needed
+- Masking: 15% of characters masked per batch (MLM)

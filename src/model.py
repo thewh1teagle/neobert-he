@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import torch
 from transformers import ModernBertConfig, ModernBertForMaskedLM
 
 from tokenization import build_vocab
@@ -16,6 +17,7 @@ def build_model(flash_attention: bool = False) -> ModernBertForMaskedLM:
         num_attention_heads=8,
         intermediate_size=1536,
         max_position_embeddings=4096,
-        attn_implementation="flash_attention_2" if flash_attention else "sdpa",
     )
+    if flash_attention:
+        config._attn_implementation = "flash_attention_2"
     return ModernBertForMaskedLM(config)
