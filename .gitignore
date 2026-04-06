@@ -12,3 +12,4 @@ wheels/
 *.txt
 outputs/
 *.7z
+data/
