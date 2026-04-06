@@ -4,13 +4,13 @@ Example:
     uv run src/train.py \
         --train-dataset data/train.txt \
         --eval-dataset data/val.txt \
-        --output-dir outputs/neobert-he-mlm
+        --output-dir outputs/bert-char-he-mlm
 
 Multi-GPU:
     accelerate launch src/train.py \
         --train-dataset data/train.txt \
         --eval-dataset data/val.txt \
-        --output-dir outputs/neobert-he-mlm
+        --output-dir outputs/bert-char-he-mlm
 """
 
 from __future__ import annotations

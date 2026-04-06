@@ -1,5 +1,5 @@
 [project]
-name = "neobert-he-mlm"
+name = "bert-char-he"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"

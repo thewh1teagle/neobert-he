@@ -1,7 +1,7 @@
 """Interactive masked-token inference for debugging the MLM model.
 
 Example:
-    uv run src/infer.py --checkpoint outputs/neobert-he-mlm/checkpoint-1000 --text "מ[MASK]של[MASK]"
+    uv run src/infer.py --checkpoint outputs/bert-char-he-mlm/checkpoint-1000 --text "מ[MASK]של[MASK]"
 
 If no --text is given, reads lines from stdin.
 """

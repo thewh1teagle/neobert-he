@@ -15,18 +15,18 @@ This downloads the Hebrew corpora, strips nikud, and splits into `data/train.txt
 bash scripts/train_scratch.sh
 ```
 
-Checkpoints are saved to `outputs/neobert-he/` in HuggingFace format, loadable with `AutoModelForMaskedLM.from_pretrained`.
+Checkpoints are saved to `outputs/bert-char-he/` in HuggingFace format, loadable with `AutoModelForMaskedLM.from_pretrained`.
 
 ### Resume from checkpoint
 
 ```console
-bash scripts/train_scratch.sh --init-from-checkpoint outputs/neobert-he/checkpoint-2000
+bash scripts/train_scratch.sh --init-from-checkpoint outputs/bert-char-he/checkpoint-2000
 ```
 
 ### Fine-tune from a checkpoint (reset optimizer)
 
 ```console
-bash scripts/train_scratch.sh --init-from-checkpoint outputs/neobert-he/checkpoint-2000 --init-weights-only
+bash scripts/train_scratch.sh --init-from-checkpoint outputs/bert-char-he/checkpoint-2000 --init-weights-only
 ```
 
 ## Flash Attention

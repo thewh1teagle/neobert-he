@@ -1,4 +1,4 @@
-# neobert-he
+# bert-char-he
 
 Hebrew character-level BERT pretrained with MLM.
 
@@ -14,5 +14,5 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for details.
 ./scripts/train_scratch.sh
 
 # Inference
-uv run src/infer.py --checkpoint outputs/neobert-he/checkpoint-1000 --text "מ[MASK]של[MASK]"
+uv run src/infer.py --checkpoint outputs/bert-char-he/checkpoint-1000 --text "מ[MASK]של[MASK]"
 ```
