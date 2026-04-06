@@ -54,9 +54,9 @@ uv run src/train.py \
   --epochs 1
 ```
 
-## Flash Attention (sequence packing)
+## Flash Attention
 
-Pass `--flash-attention` to enable packed-sequence training with `flash_attn_varlen_func`. Sequences are concatenated into a single tensor with cumulative sequence lengths, eliminating padding waste. Requires `flash-attn` installed:
+Pass `--flash-attention` to use `flash_attention_2` instead of SDPA. Requires `flash-attn` installed:
 
 ```console
 pip install flash-attn --no-build-isolation

@@ -53,7 +53,7 @@ def main():
 
     train_loader, eval_loader = make_dataloaders(args, tokenizer)
 
-    model = build_model()
+    model = build_model(flash_attention=args.flash_attention)
 
     if args.init_from_checkpoint:
         from safetensors.torch import load_file
