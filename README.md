@@ -6,7 +6,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for details.
 
 ## Quick Start
 
-```bash
+```console
 # Split your Hebrew corpus
 ./scripts/split_dataset.sh /path/to/hebrew.txt
 
