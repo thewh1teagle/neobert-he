@@ -18,7 +18,6 @@ from __future__ import annotations
 import math
 from pathlib import Path
 
-import torch
 from accelerate import Accelerator
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
@@ -55,13 +54,12 @@ def main():
 
     model = build_model(flash_attention=args.flash_attention)
 
-    if args.init_from_checkpoint:
-        from transformers import ModernBertForMaskedLM
-        pretrained = ModernBertForMaskedLM.from_pretrained(args.init_from_checkpoint)
-        model.load_state_dict(pretrained.state_dict(), strict=False)
-        del pretrained
+    if args.resume:
+        from safetensors.torch import load_file
+        state = load_file(str(Path(args.resume) / "model.safetensors"), device="cpu")
+        model.load_state_dict(state, strict=False)
         if accelerator.is_main_process:
-            print(f"Loaded weights from {args.init_from_checkpoint}")
+            print(f"Loaded weights from {args.resume}")
 
     total_opt_steps = math.ceil(len(train_loader) * args.epochs / args.gradient_accumulation_steps)
     optimizer = build_optimizer(model, lr=args.encoder_lr, weight_decay=args.weight_decay)
@@ -72,8 +70,8 @@ def main():
     )
 
     opt_step = 0
-    if args.init_from_checkpoint and not args.init_weights_only:
-        opt_step = resume_step(args.init_from_checkpoint, scheduler)
+    if args.resume and not args.reset_steps:
+        opt_step = resume_step(args.resume, scheduler)
         if accelerator.is_main_process and opt_step:
             print(f"Resumed from step {opt_step}")
 

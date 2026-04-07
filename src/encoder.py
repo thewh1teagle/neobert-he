@@ -1,9 +1,10 @@
-"""ModernBERT encoder for Hebrew G2P, initialized from scratch.
+"""NeoBERT encoder for Hebrew, initialized from scratch.
 
-Architecture: ModernBERT configured to ~20M params:
-  - 6 layers, 512 hidden, 8 heads, 1536 FFN
+Architecture follows chandar-lab/NeoBERT shrunk to ~19M params:
+  - 6 layers, 512 hidden, 8 heads, 2048 FFN
+  - SwiGLU activation
   - RoPE positional embeddings
-  - ALiBi-free, uses SDPA
+  - Pre-RMSNorm
   - 4096 token context
 
 Vocab size matches the tokenizer built in tokenization.py.
@@ -11,19 +12,22 @@ Vocab size matches the tokenizer built in tokenization.py.
 
 from __future__ import annotations
 
-from transformers import ModernBertConfig, ModernBertModel
+from neobert.model import NeoBERT, NeoBERTConfig
 
 from tokenization import build_vocab
 
 
-def build_encoder() -> ModernBertModel:
-    config = ModernBertConfig(
-        vocab_size=len(build_vocab()),
-        pad_token_id=0,
-        hidden_size=512,
-        num_hidden_layers=6,
-        num_attention_heads=8,
-        intermediate_size=1536,
-        max_position_embeddings=4096,
+def _vocab_size() -> int:
+    return len(build_vocab())
+
+
+def build_encoder(flash_attention: bool = False) -> NeoBERT:
+    config = NeoBERTConfig(
+        vocab_size=_vocab_size(),      # 104 instead of 30522 (character-level Hebrew vocab)
+        num_hidden_layers=6,           # 28 in full NeoBERT; 6 gives ~19M with our tiny vocab
+        hidden_size=512,               # reduced from 768
+        intermediate_size=2048,        # 4x hidden
+        num_attention_heads=8,         # reduced from 12
+        max_length=4096,
     )
-    return ModernBertModel(config)
+    return NeoBERT(config)

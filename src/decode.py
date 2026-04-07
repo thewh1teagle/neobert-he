@@ -28,7 +28,6 @@ def decode_masked_batch(
     Each example is a dict with keys: input, pred, true.
     Only masked positions (labels != -100) are shown as differing from the input.
     """
-    mask_id = tokenizer.mask_token_id
     preds = logits.argmax(-1)  # [B, S]
     results = []
 

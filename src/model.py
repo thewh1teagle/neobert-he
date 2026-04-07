@@ -1,23 +1,23 @@
-"""ModernBERT MLM model for Hebrew pretraining."""
+"""NeoBERT MLM model for Hebrew pretraining."""
 
 from __future__ import annotations
 
-import torch
-from transformers import ModernBertConfig, ModernBertForMaskedLM
+from neobert.model import NeoBERTLMHead, NeoBERTConfig
 
 from tokenization import build_vocab
 
 
-def build_model(flash_attention: bool = False) -> ModernBertForMaskedLM:
-    config = ModernBertConfig(
-        vocab_size=len(build_vocab()),
-        pad_token_id=0,
-        hidden_size=512,
+def _vocab_size() -> int:
+    return len(build_vocab())
+
+
+def build_model(flash_attention: bool = False) -> NeoBERTLMHead:
+    config = NeoBERTConfig(
+        vocab_size=_vocab_size(),
         num_hidden_layers=6,
+        hidden_size=512,
+        intermediate_size=2048,
         num_attention_heads=8,
-        intermediate_size=1536,
-        max_position_embeddings=4096,
+        max_length=4096,
     )
-    if flash_attention:
-        config._attn_implementation = "flash_attention_2"
-    return ModernBertForMaskedLM(config)
+    return NeoBERTLMHead(config)
